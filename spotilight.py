@@ -27,6 +27,9 @@ async def driver():
 
     prev_color = None
     while True:
+        # Gets loop start time to prevent overpolling Spotify Web API
+        start_time = time.time()
+
         # Gets color pallete for current album art
         color_pallete = spotify_color_grabber.get_current_playing_track_colors()
 
@@ -34,20 +37,24 @@ async def driver():
             time.sleep(10)
             continue
         
+        # Updates light info (need it so brightness is updated if changed manually)
+        await lights.update()
+
         # Takes top color and converts it from RGB to HSV
         color_rgb = tuple(val/255.0 for val in color_pallete[0])
-        hsv_denorm = (360, 100, 100)
         color_hsv_norm = colorsys.rgb_to_hsv(*color_rgb)
-        color_hsv = tuple(round(val * mult) for val, mult in zip(color_hsv_norm, hsv_denorm))
+
+        # Denormalize returned hue and saturation (but keep current brightness)
+        color_hsv = (round(color_hsv_norm[0] * 360), round(color_hsv_norm[1] * 100), round(lights.get_avg_brightness()))
 
         # Sets light color if it is different from previous one
         if color_hsv != prev_color:
             # print('setting lights to:', color_hsv)
             prev_color = color_hsv
-            await lights.set_color(*color_hsv, transition=2_000)
+            await lights.set_color(*color_hsv, transition=1000)
 
-        # Waits 2 seconds before polling Spotify API to see if track is different
-        time.sleep(2)
+        # Waits to make sure that there is at least half a second of poll time
+        time.sleep(max(0.5 - (time.time() - start_time), 0))
 
 if __name__ == "__main__":
     asyncio.run(driver())
