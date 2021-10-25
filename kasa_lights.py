@@ -33,6 +33,3 @@ class KasaLights:
         # Sets color for all bulbs concurrently
         return await asyncio.gather(*[bulb.set_hsv(*args, **kwargs) for bulb in self.bulbs])
 
-    def get_avg_brightness(self):
-        # Sets color for all bulbs concurrently
-        return sum(bulb.brightness for bulb in self.bulbs)/float(len(self.bulbs))

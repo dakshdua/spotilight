@@ -36,16 +36,13 @@ async def driver():
         if color_pallete is None:
             time.sleep(10)
             continue
-        
-        # Updates light info (need it so brightness is updated if changed manually)
-        await lights.update()
 
         # Takes top color and converts it from RGB to HSV
         color_rgb = tuple(val/255.0 for val in color_pallete[0])
         color_hsv_norm = colorsys.rgb_to_hsv(*color_rgb)
 
         # Denormalize returned hue and saturation (but keep current brightness)
-        color_hsv = (round(color_hsv_norm[0] * 360), round(color_hsv_norm[1] * 100), round(lights.get_avg_brightness()))
+        color_hsv = (round(color_hsv_norm[0] * 360), round(color_hsv_norm[1] * 100))
 
         # Sets light color if it is different from previous one
         if color_hsv != prev_color:
